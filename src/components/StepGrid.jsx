@@ -1,0 +1,109 @@
+import { INSTRUMENTS, INSTRUMENT_BY_ID } from '../data/instruments.js'
+import { VELOCITY, nextVelocity } from '../lib/pattern.js'
+import { triggerVoice } from '../lib/audio.js'
+
+const VELOCITY_CLASS = {
+  [VELOCITY.OFF]: 'off',
+  [VELOCITY.GHOST]: 'ghost',
+  [VELOCITY.NORMAL]: 'normal',
+  [VELOCITY.ACCENT]: 'accent',
+}
+
+const VELOCITY_LABEL = {
+  [VELOCITY.OFF]: 'silence',
+  [VELOCITY.GHOST]: 'ghost note',
+  [VELOCITY.NORMAL]: 'coup normal',
+  [VELOCITY.ACCENT]: 'accent',
+}
+
+export default function StepGrid({ pattern, playhead, onToggleCell, onClearTrack, onRemoveTrack, onAddTrack }) {
+  const stepIndexes = Array.from({ length: pattern.steps }, (_, index) => index)
+  const usedIds = new Set(pattern.tracks.map((track) => track.instrument))
+  const available = INSTRUMENTS.filter((instrument) => !usedIds.has(instrument.id))
+
+  return (
+    <div className="grid-scroll">
+      <div className="grid" style={{ '--steps': pattern.steps }}>
+        <div className="grid-row grid-ruler">
+          <div className="grid-label" aria-hidden="true" />
+          {stepIndexes.map((step) => (
+            <div
+              key={step}
+              className={`ruler-cell${step % 4 === 0 ? ' beat' : ''}${step % 16 === 0 ? ' bar' : ''}${step === playhead ? ' playing' : ''}`}
+            >
+              {step % 4 === 0 ? step / 4 + 1 : ''}
+            </div>
+          ))}
+        </div>
+
+        {pattern.tracks.map((track) => {
+          const instrument = INSTRUMENT_BY_ID[track.instrument]
+          return (
+            <div className="grid-row" key={track.instrument}>
+              <div className="grid-label">
+                <button
+                  type="button"
+                  className="audition"
+                  style={{ '--accent': instrument.color }}
+                  onClick={() => triggerVoice(track.instrument, VELOCITY.ACCENT)}
+                  title={`Écouter ${instrument.label} (note MIDI ${instrument.note})`}
+                >
+                  {instrument.short}
+                </button>
+                <span className="grid-label-actions">
+                  <button type="button" onClick={() => onClearTrack(track.instrument)} title="Vider la ligne">
+                    ⌫
+                  </button>
+                  <button type="button" onClick={() => onRemoveTrack(track.instrument)} title="Supprimer la ligne">
+                    ×
+                  </button>
+                </span>
+              </div>
+
+              {track.cells.map((velocity, step) => (
+                <button
+                  type="button"
+                  key={step}
+                  className={`cell ${VELOCITY_CLASS[velocity]}${step % 4 === 0 ? ' beat' : ''}${step % 16 === 0 ? ' bar' : ''}${step === playhead ? ' playing' : ''}`}
+                  style={{ '--accent': instrument.color }}
+                  aria-label={`${instrument.label}, pas ${step + 1} : ${VELOCITY_LABEL[velocity]}`}
+                  onClick={(event) => {
+                    // Alt-clic (ou clic droit) efface directement la case.
+                    const value = event.altKey ? VELOCITY.OFF : nextVelocity(velocity)
+                    onToggleCell(track.instrument, step, value)
+                    if (value !== VELOCITY.OFF) triggerVoice(track.instrument, value)
+                  }}
+                  onContextMenu={(event) => {
+                    event.preventDefault()
+                    onToggleCell(track.instrument, step, VELOCITY.OFF)
+                  }}
+                />
+              ))}
+            </div>
+          )
+        })}
+
+        {available.length > 0 && (
+          <div className="grid-row grid-add">
+            <div className="grid-label">
+              <select
+                value=""
+                onChange={(event) => {
+                  if (event.target.value) onAddTrack(event.target.value)
+                }}
+                aria-label="Ajouter un instrument"
+              >
+                <option value="">+ piste</option>
+                {available.map((instrument) => (
+                  <option key={instrument.id} value={instrument.id}>
+                    {instrument.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,572 @@
+:root {
+  --bg: #0c0e12;
+  --panel: #14181f;
+  --panel-2: #1a2029;
+  --line: #262e39;
+  --line-strong: #38434f;
+  --text: #e7edf4;
+  --muted: #8b98a8;
+  --hot: #ff5a3c;
+
+  --cell: 22px;
+  --cell-gap: 2px;
+  --label-w: 108px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #1a2230 0%, transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+code,
+kbd {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.92em;
+}
+
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* ------------------------------------------------------------- en-tête */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.masthead h1::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 9px;
+  border-radius: 50%;
+  background: var(--hot);
+  box-shadow: 0 0 14px var(--hot);
+  vertical-align: middle;
+}
+
+.masthead-title p {
+  margin: 6px 0 0;
+  max-width: 54ch;
+  color: var(--muted);
+}
+
+.masthead-tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.volume input {
+  width: 96px;
+}
+
+.stop-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--hot);
+  border-radius: 999px;
+  background: rgba(255, 90, 60, 0.12);
+  color: var(--hot);
+  cursor: pointer;
+}
+
+.stop-all kbd {
+  padding: 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------- filtres */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(var(--bg) 78%, transparent);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--line-strong);
+}
+
+.chip.on {
+  border-color: var(--hot);
+  background: rgba(255, 90, 60, 0.14);
+  color: #ffd9d1;
+}
+
+.chip-count {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip.on .chip-count {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.search {
+  flex: 1 1 240px;
+  max-width: 340px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--line-strong);
+}
+
+/* --------------------------------------------------------------- cartes */
+
+.library {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card.is-playing {
+  border-color: rgba(255, 90, 60, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 90, 60, 0.18), 0 14px 40px -24px var(--hot);
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.card-title h2 {
+  margin: 0;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.genre {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.play {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--panel-2);
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.12s, background 0.15s, border-color 0.15s;
+}
+
+.play:hover {
+  transform: scale(1.06);
+  border-color: var(--hot);
+}
+
+.play.on {
+  background: var(--hot);
+  border-color: var(--hot);
+  color: #14181f;
+}
+
+.card-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.card-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+
+.card-controls input[type='number'] {
+  width: 72px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-controls .swing input {
+  width: 132px;
+}
+
+.notes {
+  margin: 14px 0 16px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line-strong);
+  color: var(--muted);
+  max-width: 82ch;
+}
+
+/* --------------------------------------------------------------- grille */
+
+.grid-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.grid {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--cell-gap);
+  min-width: min-content;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: var(--label-w) repeat(var(--steps), var(--cell));
+  gap: var(--cell-gap);
+  align-items: center;
+}
+
+.grid-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+.audition {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--panel-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.audition:hover {
+  border-color: var(--accent);
+}
+
+.grid-label-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.grid-row:hover .grid-label-actions {
+  opacity: 1;
+}
+
+.grid-label-actions button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.grid-label-actions button:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.grid-ruler .ruler-cell {
+  height: 16px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  text-align: center;
+  line-height: 16px;
+  border-radius: 3px;
+}
+
+.ruler-cell.beat {
+  color: var(--text);
+}
+
+.ruler-cell.playing {
+  background: rgba(255, 90, 60, 0.25);
+  color: #fff;
+}
+
+.cell {
+  height: var(--cell);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #1c232c;
+  cursor: pointer;
+  transition: background 0.08s, box-shadow 0.08s;
+}
+
+.cell.beat {
+  background: #222b35;
+}
+
+.cell.bar {
+  border-left-color: var(--line-strong);
+}
+
+.cell:hover {
+  border-color: var(--line-strong);
+}
+
+/* Les ghost notes doivent rester lisibles même pour les instruments aux
+   couleurs ternes (shaker, ride) : le liseré intérieur les distingue d'une
+   case vide là où le remplissage seul ne suffit pas. */
+.cell.ghost {
+  background: color-mix(in srgb, var(--accent) 34%, #1c232c);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.cell.normal {
+  background: color-mix(in srgb, var(--accent) 72%, #1c232c);
+}
+
+.cell.accent {
+  background: var(--accent);
+  box-shadow: 0 0 10px -2px var(--accent);
+}
+
+.cell.playing {
+  outline: 1px solid rgba(255, 255, 255, 0.55);
+  outline-offset: -1px;
+}
+
+.cell.off.playing {
+  background: #2b3540;
+}
+
+.grid-add {
+  margin-top: 2px;
+}
+
+.grid-add select {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------- pied de carte */
+
+.card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.midi {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--panel-2);
+  cursor: grab;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.midi:hover {
+  border-color: var(--hot);
+  background: rgba(255, 90, 60, 0.1);
+}
+
+.midi:active {
+  cursor: grabbing;
+}
+
+.midi-icon {
+  color: var(--muted);
+  letter-spacing: -2px;
+}
+
+.midi .hint {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ghost-button {
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ghost-button:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+.colophon {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.colophon p {
+  margin: 0 0 6px;
+  max-width: 80ch;
+}
+
+.colophon code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--panel-2);
+}
+
+@media (max-width: 720px) {
+  .app {
+    padding: 22px 14px 48px;
+  }
+
+  :root {
+    --cell: 20px;
+    --label-w: 96px;
+  }
+
+  .card-head {
+    align-items: flex-start;
+  }
+
+  .midi .hint {
+    display: none;
+  }
+}
