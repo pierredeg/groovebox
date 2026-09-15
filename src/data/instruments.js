@@ -28,3 +28,15 @@ export const INSTRUMENT_BY_ID = Object.fromEntries(
 // Ordre d'affichage dans la grille : du plus grave au plus aigu, comme sur une
 // boîte à rythmes.
 export const INSTRUMENT_ORDER = INSTRUMENTS.map((instrument) => instrument.id)
+
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+// Nom de note affiché pour un numéro MIDI, dans la convention où le do central
+// (60) s'appelle C3 — celle d'Ableton, Logic et Cubase, donc le kick GM (36)
+// s'écrit C1. FL Studio décale les mêmes notes de deux octaves vers le haut.
+//
+// Calculé plutôt qu'écrit à la main : une table recopiée finit toujours par
+// contenir une faute, et une faute ici envoie l'utilisateur sur le mauvais pad.
+export function noteName(note) {
+  return `${NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 2}`
+}

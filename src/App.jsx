@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PatternCard from './components/PatternCard.jsx'
+import MidiLegend from './components/MidiLegend.jsx'
 import { GENRES, PATTERNS } from './data/patterns.js'
 import { INSTRUMENT_BY_ID } from './data/instruments.js'
 import { Sequencer, setMasterVolume } from './lib/audio.js'
@@ -39,6 +40,7 @@ export default function App() {
   const [playingId, setPlayingId] = useState(null)
   const [playhead, setPlayhead] = useState(-1)
   const [volume, setVolume] = useState(0.8)
+  const [showLegend, setShowLegend] = useState(false)
 
   const sequencer = useRef(null)
   if (sequencer.current === null) sequencer.current = new Sequencer()
@@ -123,6 +125,11 @@ export default function App() {
     })
   }, [patterns, genre, query])
 
+  const usedInstruments = useMemo(
+    () => new Set(visible.flatMap((pattern) => pattern.tracks.map((track) => track.instrument))),
+    [visible],
+  )
+
   const counts = useMemo(() => {
     const byGenre = { [ALL]: patterns.length }
     for (const pattern of patterns) {
@@ -153,6 +160,14 @@ export default function App() {
               onChange={(event) => setVolume(Number(event.target.value))}
             />
           </label>
+          <button
+            type="button"
+            className={`legend-toggle${showLegend ? ' on' : ''}`}
+            onClick={() => setShowLegend((current) => !current)}
+            aria-expanded={showLegend}
+          >
+            Mapping MIDI
+          </button>
           {playingId && (
             <button type="button" className="stop-all" onClick={stop}>
               ■ Stop <kbd>Échap</kbd>
@@ -184,6 +199,8 @@ export default function App() {
         />
       </nav>
 
+      {showLegend && <MidiLegend used={usedInstruments} />}
+
       <main className="library">
         {visible.map((pattern) => (
           <PatternCard
@@ -202,8 +219,9 @@ export default function App() {
 
       <footer className="colophon">
         <p>
-          Export General MIDI canal 10 : kick C1 (36), snare D1 (38), closed hat F#1 (42), open hat
-          A#1 (46)… Le tempo et le swing sont écrits dans le fichier.
+          Export General MIDI canal 10 — chaque ligne de la grille porte son nom de note, et le
+          bouton <strong>Mapping MIDI</strong> affiche la table complète. Le tempo et le swing sont
+          écrits dans le fichier.
         </p>
         <p>
           <code>X</code> accent · <code>x</code> normal · <code>o</code> ghost note · alt-clic pour

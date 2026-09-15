@@ -1,4 +1,4 @@
-import { INSTRUMENTS, INSTRUMENT_BY_ID } from '../data/instruments.js'
+import { INSTRUMENTS, INSTRUMENT_BY_ID, noteName } from '../data/instruments.js'
 import { VELOCITY, nextVelocity } from '../lib/pattern.js'
 import { triggerVoice } from '../lib/audio.js'
 
@@ -46,10 +46,13 @@ export default function StepGrid({ pattern, playhead, onToggleCell, onClearTrack
                   className="audition"
                   style={{ '--accent': instrument.color }}
                   onClick={() => triggerVoice(track.instrument, VELOCITY.ACCENT)}
-                  title={`Écouter ${instrument.label} (note MIDI ${instrument.note})`}
+                  title={`Écouter ${instrument.label} — note MIDI ${instrument.note} (${noteName(instrument.note)})`}
                 >
                   {instrument.short}
                 </button>
+                {/* Le nom de note laisse la place aux actions au survol : c'est
+                    lui qu'on lit en face du piano roll du DAW. */}
+                <span className="grid-note">{noteName(instrument.note)}</span>
                 <span className="grid-label-actions">
                   <button type="button" onClick={() => onClearTrack(track.instrument)} title="Vider la ligne">
                     ⌫

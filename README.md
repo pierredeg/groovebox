@@ -48,8 +48,14 @@ Battery, ou Logic Drummer, sans remapper quoi que ce soit.
 | Snare | D1 (38) | | Low tom | A1 (45) |
 | Clap | D#1 (39) | | Mid tom | B1 (47) |
 | Closed hat | F#1 (42) | | High tom | D2 (50) |
-| Pedal hat | G#1 (44) | | Shaker | A#2 (70) |
+| Pedal hat | G#1 (44) | | Shaker | A#3 (70) |
 | Open hat | A#1 (46) | | Cowbell | G#2 (56) |
+
+Les noms de notes ci-dessus suivent la convention où le do central (60)
+s'appelle C3 — celle d'Ableton, Logic et Cubase. Sous FL Studio, les mêmes
+notes s'affichent deux octaves plus haut (le kick y est en C3). Le bouton
+**Mapping MIDI** de l'application affiche la table complète, et chaque ligne de
+la grille porte son nom de note.
 
 Le fichier est un Standard MIDI File de format 0, résolution 480 ticks à la
 noire. Le swing n'est pas un réglage à part : il est **gravé dans les positions

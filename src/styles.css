@@ -10,7 +10,7 @@
 
   --cell: 22px;
   --cell-gap: 2px;
-  --label-w: 108px;
+  --label-w: 132px;
 
   color-scheme: dark;
 }
@@ -359,15 +359,26 @@ kbd {
   border-color: var(--accent);
 }
 
+.grid-note {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid-row:hover .grid-note {
+  display: none;
+}
+
 .grid-label-actions {
-  display: flex;
+  display: none;
   gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
+  margin-left: auto;
 }
 
 .grid-row:hover .grid-label-actions {
-  opacity: 1;
+  display: flex;
 }
 
 .grid-label-actions button {
@@ -559,7 +570,7 @@ kbd {
 
   :root {
     --cell: 20px;
-    --label-w: 96px;
+    --label-w: 120px;
   }
 
   .card-head {
@@ -569,4 +580,108 @@ kbd {
   .midi .hint {
     display: none;
   }
+}
+
+/* ---------------------------------------------------------- mapping MIDI */
+
+.legend-toggle {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.legend-toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.legend-toggle.on {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.legend {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.legend-intro,
+.legend-foot {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legend-intro strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px;
+  margin: 14px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-grid button {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.legend-grid button:hover {
+  border-color: var(--line-strong);
+  border-left-color: var(--accent);
+  background: var(--panel-2);
+}
+
+/* Les instruments présents dans les grooves affichés passent devant. */
+.legend-grid .in-use button {
+  border-left-color: var(--accent);
+  background: var(--panel-2);
+}
+
+.legend-grid .in-use .legend-name {
+  color: var(--text);
+}
+
+.legend-note {
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-name {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legend-number {
+  color: var(--line-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
