@@ -8,8 +8,8 @@ case par case, et on les glisse directement dans le DAW en MIDI.
 
 ## Ce que ça fait
 
-- **19 grooves de référence** répartis en 5 genres, chacun sur 2 mesures en
-  doubles-croches (32 pas).
+- **26 grooves de référence** répartis en 6 genres — house, UK garage, 2-step,
+  jungle, drum & bass, IDM — chacun sur 2 mesures en doubles-croches (32 pas).
 - **Lecture instantanée** : synthèse Web Audio façon boîte à rythmes, aucun
   sample à charger.
 - **Trois niveaux de frappe** : ghost note, coup normal, accent. C'est ce qui

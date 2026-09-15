@@ -10,7 +10,7 @@
 // Ajouter un groove = ajouter un objet ici. `npm run validate` vérifie que
 // chaque ligne fait bien 32 pas et que les instruments existent.
 
-export const GENRES = ['House', 'UK Garage', '2-Step', 'Jungle', 'IDM']
+export const GENRES = ['House', 'UK Garage', '2-Step', 'Jungle', 'Drum & Bass', 'IDM']
 
 export const PATTERNS = [
   // ---------------------------------------------------------------- House
@@ -117,6 +117,52 @@ export const PATTERNS = [
       chat:  'xoxo|xox.|xoxo|xox.|xoxo|xox.|xoxo|xox.',
       rim:   '....|..o.|....|..o.|....|..o.|....|..o.',
       ohat:  '....|...x|....|...x|....|...x|....|...x',
+    },
+  },
+
+  {
+    id: 'garage-bumpy-4x4',
+    name: 'Bumpy 4x4',
+    genre: 'UK Garage',
+    bpm: 130,
+    swing: 0.62,
+    notes: "Le garage bumpy de l'école Nice 'N' Ripe : kick 4/4, mais un coup plus discret juste avant le temps suivant. C'est ce contretemps qui fait rebondir la boucle au lieu de la faire marcher au pas.",
+    tracks: {
+      kick:  'X...|X..o|X...|X..x|X...|X..o|X...|X..x',
+      clap:  '....|X...|....|X...|....|X...|....|X...',
+      chat:  'xoxo|xo.o|xoxo|xo.o|xoxo|xo.o|xoxo|xo.o',
+      ohat:  '....|..x.|....|..x.|....|..x.|....|..x.',
+      rim:   '..o.|....|..o.|...o|..o.|....|..o.|...o',
+    },
+  },
+  {
+    id: 'garage-deep-bump',
+    name: 'Deep Bump',
+    genre: 'UK Garage',
+    bpm: 128,
+    swing: 0.64,
+    notes: "Version profonde et dépouillée du bump : on retire les accents, on laisse la conga répondre au kick. Le swing est poussé presque au triolet, c'est lui qui porte tout le groove.",
+    tracks: {
+      kick:  'X...|X...|X...|X..o|X...|X...|X...|X..o',
+      clap:  '....|X...|....|X...|....|X...|....|X...',
+      chat:  'xoo.|xoo.|xoo.|xoo.|xoo.|xoo.|xoo.|xoo.',
+      ohat:  '...x|...x|...x|...x|...x|...x|...x|...x',
+      conga: '....|.ox.|....|.o.x|....|.ox.|.o..|ox.o',
+    },
+  },
+  {
+    id: 'garage-deep-step',
+    name: 'Deep-Step',
+    genre: 'UK Garage',
+    bpm: 132,
+    swing: 0.63,
+    notes: "Le squelette du 2-step joué avec la retenue de la deep house : peu de frappes, beaucoup d'air, et le shaker qui tient le balancement entre les deux.",
+    tracks: {
+      kick:   'X...|....|.x..|....|X...|...o|.x..|....',
+      snare:  '....|X...|....|X...|....|X...|....|X...',
+      chat:   'x.oo|xo.o|x.oo|xo.o|x.oo|xo.o|x.oo|xo.o',
+      ohat:   '...x|....|...x|....|...x|....|...x|....',
+      shaker: 'o.oo|o.oo|o.oo|o.oo|o.oo|o.oo|o.oo|o.oo',
     },
   },
 
@@ -236,6 +282,66 @@ export const PATTERNS = [
       snare: '....|....|X...|....|....|....|X...|..o.',
       chat:  'x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.',
       ltom:  '....|....|....|....|....|....|....|o.o.',
+    },
+  },
+
+  // ---------------------------------------------------------- Drum & Bass
+  {
+    id: 'dnb-two-step',
+    name: 'Two-Step Roller',
+    genre: 'Drum & Bass',
+    bpm: 174,
+    swing: 0.5,
+    notes: "La grille de référence du drum & bass : kick sur 1, caisse claire sur 2 et 4, deuxième kick sur le « et » du troisième temps. C'est exactement le squelette du 2-step garage, joué au double du tempo et sans shuffle.",
+    tracks: {
+      kick:  'X...|....|..x.|....|X...|....|..x.|....',
+      snare: '....|X...|..o.|X...|....|X...|..o.|X.o.',
+      chat:  '..x.|..x.|..x.|..x.|..x.|..x.|..x.|..x.',
+      ride:  'x...|x...|x...|x...|x...|x...|x...|x...',
+    },
+  },
+  {
+    id: 'dnb-techstep',
+    name: 'Techstep Drive',
+    genre: 'Drum & Bass',
+    bpm: 176,
+    swing: 0.5,
+    notes: "Aucune ghost note, tout est net et sur la grille : le côté mécanique du techstep vient de ce qu'on a retiré, pas de ce qu'on a ajouté. Le kick doublé sur le premier temps pousse la boucle en avant.",
+    tracks: {
+      kick:  'X..x|....|..x.|....|X...|...x|..x.|....',
+      snare: '....|X...|....|X...|....|X...|....|X...',
+      chat:  'x.x.|x.x.|x.x.|x.x.|x.x.|x.x.|x.x.|x.x.',
+      ohat:  '...x|....|...x|....|...x|....|...x|....',
+      rim:   '....|.o..|....|.o..|....|.o..|....|.o..',
+    },
+  },
+  {
+    id: 'dnb-liquid-roller',
+    name: 'Liquid Roller',
+    genre: 'Drum & Bass',
+    bpm: 172,
+    swing: 0.5,
+    notes: "L'inverse du techstep : les ghost notes derrière la caisse claire remplissent tous les trous, et la ride roule en continu. C'est ce tapis qui fait tenir un morceau liquid sur six minutes.",
+    tracks: {
+      kick:  'X...|....|..x.|....|X..o|....|..x.|..o.',
+      snare: '....|X.oo|.o..|X.o.|....|X.oo|.o..|X.o.',
+      chat:  'o.o.|o.oo|o.o.|o.oo|o.o.|o.oo|o.o.|o.oo',
+      ride:  'x..x|.x..|x..x|.x..|x..x|.x..|x..x|.x..',
+    },
+  },
+  {
+    id: 'dnb-jump-up',
+    name: 'Jump-Up Bounce',
+    genre: 'Drum & Bass',
+    bpm: 175,
+    swing: 0.5,
+    notes: "Les kicks supplémentaires sur la fin des temps font sauter la boucle. Crash sur le premier temps : cette grille est faite pour tomber juste après un break.",
+    tracks: {
+      kick:  'X...|...x|X...|....|X...|...x|X..x|....',
+      snare: '....|X...|....|X...|....|X...|....|X...',
+      chat:  'x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.',
+      ohat:  '...x|....|...x|....|...x|....|...x|....',
+      crash: 'X...|....|....|....|....|....|....|....',
     },
   },
 
