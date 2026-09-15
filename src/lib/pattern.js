@@ -108,3 +108,23 @@ export function swingOffset(stepIndex, swing) {
 export function isEmpty(pattern) {
   return pattern.tracks.every((track) => track.cells.every((cell) => cell === VELOCITY.OFF))
 }
+
+// La MPC affiche les positions au format mesure.temps.tick, avec 960 ticks par
+// temps — soit 240 ticks par double-croche, c'est-à-dire exactement un pas de
+// cette grille. Le premier pas est donc 001.01.000, le deuxième 001.01.240.
+export const MPC_TICKS_PER_BEAT = 960
+
+const STEPS_PER_BEAT = 4
+const BEATS_PER_BAR = 4
+
+export function mpcPosition(step) {
+  const bar = Math.floor(step / (STEPS_PER_BEAT * BEATS_PER_BAR)) + 1
+  const beat = Math.floor((step % (STEPS_PER_BEAT * BEATS_PER_BAR)) / STEPS_PER_BEAT) + 1
+  const tick = (step % STEPS_PER_BEAT) * (MPC_TICKS_PER_BEAT / STEPS_PER_BEAT)
+  return `${String(bar).padStart(3, '0')}.${String(beat).padStart(2, '0')}.${String(tick).padStart(3, '0')}`
+}
+
+// Mesure et temps seuls, pour la règle où la place manque.
+export function mpcBarBeat(step) {
+  return mpcPosition(step).slice(0, 6)
+}

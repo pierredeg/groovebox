@@ -16,6 +16,7 @@ function PatternCard({
   isPlaying,
   playhead,
   isEdited,
+  ruler,
   onTogglePlay,
   onChange,
   onReset,
@@ -121,6 +122,7 @@ function PatternCard({
       <StepGrid
         pattern={pattern}
         playhead={isPlaying ? playhead : -1}
+        ruler={ruler}
         onToggleCell={setCell}
         onClearTrack={clearTrack}
         onRemoveTrack={removeTrack}

@@ -7,6 +7,7 @@ import { Sequencer, setMasterVolume } from './lib/audio.js'
 import { dehydratePattern, hydratePattern } from './lib/pattern.js'
 
 const STORAGE_KEY = 'groovebox:edits:v1'
+const RULER_KEY = 'groovebox:ruler:v1'
 const ALL = 'Tous'
 
 function readEdits() {
@@ -41,6 +42,24 @@ export default function App() {
   const [playhead, setPlayhead] = useState(-1)
   const [volume, setVolume] = useState(0.8)
   const [showLegend, setShowLegend] = useState(false)
+
+  // 'beats' = numérotation simple des temps, 'mpc' = positions mesure.temps.tick
+  // telles que les affiche la MPC.
+  const [ruler, setRuler] = useState(() => {
+    try {
+      return localStorage.getItem(RULER_KEY) === 'mpc' ? 'mpc' : 'beats'
+    } catch {
+      return 'beats'
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(RULER_KEY, ruler)
+    } catch {
+      // Stockage indisponible : le choix vaut pour la session en cours.
+    }
+  }, [ruler])
 
   const sequencer = useRef(null)
   if (sequencer.current === null) sequencer.current = new Sequencer()
@@ -162,6 +181,15 @@ export default function App() {
           </label>
           <button
             type="button"
+            className={`legend-toggle${ruler === 'mpc' ? ' on' : ''}`}
+            onClick={() => setRuler((current) => (current === 'mpc' ? 'beats' : 'mpc'))}
+            aria-pressed={ruler === 'mpc'}
+            title="Afficher les positions au format mesure.temps.tick de la MPC"
+          >
+            Temps MPC
+          </button>
+          <button
+            type="button"
             className={`legend-toggle${showLegend ? ' on' : ''}`}
             onClick={() => setShowLegend((current) => !current)}
             aria-expanded={showLegend}
@@ -209,6 +237,7 @@ export default function App() {
             isPlaying={playingId === pattern.id}
             playhead={playhead}
             isEdited={edited.has(pattern.id)}
+            ruler={ruler}
             onTogglePlay={togglePlay}
             onChange={updatePattern}
             onReset={resetPattern}
@@ -223,6 +252,14 @@ export default function App() {
           bouton <strong>Mapping MIDI</strong> affiche la table complète. Le tempo et le swing sont
           écrits dans le fichier.
         </p>
+        {ruler === 'mpc' && (
+          <p>
+            Positions au format <code>mesure.temps.tick</code> de la MPC, à 960 ticks par temps —
+            240 par double-croche. Attention : sur un groove shufflé, les notes exportées ne tombent
+            pas sur ces positions rondes. C'est le swing, pas une erreur : à 64 %, une double
+            impaire écrite <code>001.01.720</code> est jouée à <code>001.01.788</code>.
+          </p>
+        )}
         <p>
           <code>X</code> accent · <code>x</code> normal · <code>o</code> ghost note · alt-clic pour
           effacer.

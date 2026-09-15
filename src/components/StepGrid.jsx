@@ -1,5 +1,5 @@
 import { INSTRUMENTS, INSTRUMENT_BY_ID, noteName } from '../data/instruments.js'
-import { VELOCITY, nextVelocity } from '../lib/pattern.js'
+import { VELOCITY, mpcBarBeat, mpcPosition, nextVelocity } from '../lib/pattern.js'
 import { triggerVoice } from '../lib/audio.js'
 
 const VELOCITY_CLASS = {
@@ -16,14 +16,15 @@ const VELOCITY_LABEL = {
   [VELOCITY.ACCENT]: 'accent',
 }
 
-export default function StepGrid({ pattern, playhead, onToggleCell, onClearTrack, onRemoveTrack, onAddTrack }) {
+export default function StepGrid({ pattern, playhead, ruler, onToggleCell, onClearTrack, onRemoveTrack, onAddTrack }) {
+  const mpc = ruler === 'mpc'
   const stepIndexes = Array.from({ length: pattern.steps }, (_, index) => index)
   const usedIds = new Set(pattern.tracks.map((track) => track.instrument))
   const available = INSTRUMENTS.filter((instrument) => !usedIds.has(instrument.id))
 
   return (
     <div className="grid-scroll">
-      <div className="grid" style={{ '--steps': pattern.steps }}>
+      <div className={`grid${mpc ? ' mpc' : ''}`} style={{ '--steps': pattern.steps }}>
         <div className="grid-row grid-ruler">
           <div className="grid-label" aria-hidden="true" />
           {stepIndexes.map((step) => (
@@ -31,7 +32,7 @@ export default function StepGrid({ pattern, playhead, onToggleCell, onClearTrack
               key={step}
               className={`ruler-cell${step % 4 === 0 ? ' beat' : ''}${step % 16 === 0 ? ' bar' : ''}${step === playhead ? ' playing' : ''}`}
             >
-              {step % 4 === 0 ? step / 4 + 1 : ''}
+              {step % 4 === 0 ? (mpc ? mpcBarBeat(step) : step / 4 + 1) : ''}
             </div>
           ))}
         </div>
@@ -69,7 +70,8 @@ export default function StepGrid({ pattern, playhead, onToggleCell, onClearTrack
                   key={step}
                   className={`cell ${VELOCITY_CLASS[velocity]}${step % 4 === 0 ? ' beat' : ''}${step % 16 === 0 ? ' bar' : ''}${step === playhead ? ' playing' : ''}`}
                   style={{ '--accent': instrument.color }}
-                  aria-label={`${instrument.label}, pas ${step + 1} : ${VELOCITY_LABEL[velocity]}`}
+                  aria-label={`${instrument.label}, pas ${step + 1} (${mpcPosition(step)}) : ${VELOCITY_LABEL[velocity]}`}
+                  title={mpcPosition(step)}
                   onClick={(event) => {
                     // Alt-clic (ou clic droit) efface directement la case.
                     const value = event.altKey ? VELOCITY.OFF : nextVelocity(velocity)
