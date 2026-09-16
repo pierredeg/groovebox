@@ -3,7 +3,9 @@
 // canal et les vélocités, le fichier est lisible par un DAW. `npm run check:midi`.
 import { PATTERNS } from '../src/data/patterns.js'
 import { hydratePattern, MIDI_VELOCITY, VELOCITY } from '../src/lib/pattern.js'
-import { patternToMidi, midiFileName } from '../src/lib/midi.js'
+import { patternToMidi, progressionToMidi, midiFileName } from '../src/lib/midi.js'
+import { PROGRESSIONS } from '../src/data/progressions.js'
+import { hydrateProgression, progressionHits } from '../src/lib/chords.js'
 
 function decode(bytes) {
   let i = 0
@@ -38,8 +40,15 @@ function decode(bytes) {
     } else {
       const kind = status & 0xf0
       const channel = status & 0x0f
-      const note = bytes[i++], velocity = bytes[i++]
-      events.push({ tick, kind: kind === 0x90 ? 'on' : 'off', channel, note, velocity })
+      // Program change (0xC0) et aftertouch de canal (0xD0) ne portent qu'un
+      // seul octet de donnée, contrairement à tous les autres.
+      if (kind === 0xc0 || kind === 0xd0) {
+        const value = bytes[i++]
+        events.push({ tick, kind: kind === 0xc0 ? 'program' : 'aftertouch', channel, value })
+      } else {
+        const note = bytes[i++], velocity = bytes[i++]
+        events.push({ tick, kind: kind === 0x90 ? 'on' : 'off', channel, note, velocity })
+      }
     }
   }
 
@@ -82,5 +91,52 @@ for (const raw of PATTERNS) {
     console.log(`✗ ${pattern.id} : ${error.message}`)
   }
 }
+
+// --- progressions d'accords ---------------------------------------------
+
+const GM_PROGRAMS = { organ: 16, rhodes: 4, pad: 89 }
+
+for (const raw of PROGRESSIONS) {
+  const progression = hydrateProgression(raw)
+  try {
+    const decoded = decode(progressionToMidi(progression))
+    const hits = progressionHits(progression)
+    const expectedNotes = hits.reduce((n, hit) => n + hit.pitches.length, 0)
+
+    const ons = decoded.events.filter((e) => e.kind === 'on')
+    const offs = decoded.events.filter((e) => e.kind === 'off')
+    const programs = decoded.events.filter((e) => e.kind === 'program')
+    const bpm = 60000000 / decoded.tempo
+
+    const problems = []
+    if (Math.abs(bpm - progression.bpm) > 0.5) problems.push(`tempo ${bpm.toFixed(1)} ≠ ${progression.bpm}`)
+    if (ons.length !== expectedNotes) problems.push(`${ons.length} note-on pour ${expectedNotes} attendues`)
+    if (offs.length !== expectedNotes) problems.push(`${offs.length} note-off pour ${expectedNotes}`)
+    // Les accords doivent sortir sur un canal mélodique, pas sur le canal 10.
+    if (ons.some((e) => e.channel !== 0)) problems.push('accord hors du canal 1')
+    if (programs.length !== 1 || programs[0].value !== GM_PROGRAMS[progression.timbre]) {
+      problems.push(`programme GM absent ou incorrect pour "${progression.timbre}"`)
+    }
+
+    // Chaque note doit durer quelque chose, et le gate doit se voir : un stab
+    // sec produit des notes nettement plus courtes qu'un accord tenu.
+    const durations = ons.map((on) => {
+      const off = offs.find((o) => o.note === on.note && o.tick > on.tick)
+      return off ? off.tick - on.tick : 0
+    })
+    if (durations.some((d) => d <= 0)) problems.push('note de durée nulle')
+
+    const longest = Math.max(...durations)
+    if (progression.gate <= 0.3 && longest > 240) problems.push(`stab trop long (${longest} ticks)`)
+    if (progression.gate >= 0.95 && longest < 240) problems.push(`accord tenu trop court (${longest} ticks)`)
+
+    if (problems.length) { failures += 1; console.log(`✗ ${progression.id} : ${problems.join(', ')}`) }
+    else console.log(`✓ ${midiFileName(progression).padEnd(40)} ${ons.length} notes, ${progression.chords.length} accords, gate ${progression.gate}, ${progression.timbre}`)
+  } catch (error) {
+    failures += 1
+    console.log(`✗ ${progression.id} : ${error.message}`)
+  }
+}
+
 console.log(failures === 0 ? '\nTous les fichiers MIDI sont valides.' : `\n${failures} échec(s).`)
 process.exit(failures === 0 ? 0 : 1)

@@ -1,102 +1,136 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PatternCard from './components/PatternCard.jsx'
+import ChordCard from './components/ChordCard.jsx'
 import MidiLegend from './components/MidiLegend.jsx'
 import { GENRES, PATTERNS } from './data/patterns.js'
+import { PROGRESSIONS } from './data/progressions.js'
 import { INSTRUMENT_BY_ID } from './data/instruments.js'
 import { Sequencer, setMasterVolume } from './lib/audio.js'
 import { dehydratePattern, hydratePattern } from './lib/pattern.js'
+import { TRANSPOSITIONS, dehydrateProgression, hydrateProgression } from './lib/chords.js'
 
-const STORAGE_KEY = 'groovebox:edits:v1'
+const EDITS_KEY = 'groovebox:edits:v1'
+const CHORD_EDITS_KEY = 'groovebox:chord-edits:v1'
 const RULER_KEY = 'groovebox:ruler:v1'
+const SECTION_KEY = 'groovebox:section:v1'
+const TRANSPOSE_KEY = 'groovebox:transpose:v1'
 const ALL = 'Tous'
 
-function readEdits() {
+function readStore(key) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+    return JSON.parse(localStorage.getItem(key) ?? '{}')
   } catch {
     return {}
   }
 }
 
-function writeEdits(edits) {
+function writeStore(key, value) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(edits))
+    localStorage.setItem(key, JSON.stringify(value))
   } catch {
     // Mode privé ou stockage plein : les modifications restent en mémoire.
   }
 }
 
-// Les patterns d'origine sont la référence ; les retouches de l'utilisateur
-// sont stockées à part pour pouvoir toujours revenir en arrière.
-function buildInitialState() {
-  const edits = readEdits()
+function readSetting(key, fallback) {
+  try {
+    return localStorage.getItem(key) ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+// Les données d'origine restent la référence ; les retouches sont stockées à
+// part pour pouvoir toujours revenir en arrière.
+function buildPatterns() {
+  const edits = readStore(EDITS_KEY)
   return PATTERNS.map((pattern) => hydratePattern(edits[pattern.id] ?? pattern))
 }
 
+function buildProgressions() {
+  const edits = readStore(CHORD_EDITS_KEY)
+  return PROGRESSIONS.map((progression) =>
+    hydrateProgression(edits[progression.id] ?? progression),
+  )
+}
+
 export default function App() {
-  const [patterns, setPatterns] = useState(buildInitialState)
-  const [edited, setEdited] = useState(() => new Set(Object.keys(readEdits())))
+  const [patterns, setPatterns] = useState(buildPatterns)
+  const [progressions, setProgressions] = useState(buildProgressions)
+  const [edited, setEdited] = useState(() => new Set(Object.keys(readStore(EDITS_KEY))))
+
+  const [section, setSection] = useState(() =>
+    readSetting(SECTION_KEY, 'drums') === 'chords' ? 'chords' : 'drums',
+  )
   const [genre, setGenre] = useState(ALL)
   const [query, setQuery] = useState('')
-  const [playingId, setPlayingId] = useState(null)
+  const [transpose, setTranspose] = useState(() => Number(readSetting(TRANSPOSE_KEY, '0')) || 0)
+
+  // Un identifiant par emplacement : une rythmique et une progression peuvent
+  // jouer en même temps.
+  const [playing, setPlaying] = useState({ drum: null, chords: null })
   const [playhead, setPlayhead] = useState(-1)
   const [volume, setVolume] = useState(0.8)
   const [showLegend, setShowLegend] = useState(false)
+  const [ruler, setRuler] = useState(() => (readSetting(RULER_KEY, 'beats') === 'mpc' ? 'mpc' : 'beats'))
 
-  // 'beats' = numérotation simple des temps, 'mpc' = positions mesure.temps.tick
-  // telles que les affiche la MPC.
-  const [ruler, setRuler] = useState(() => {
-    try {
-      return localStorage.getItem(RULER_KEY) === 'mpc' ? 'mpc' : 'beats'
-    } catch {
-      return 'beats'
-    }
-  })
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(RULER_KEY, ruler)
-    } catch {
-      // Stockage indisponible : le choix vaut pour la session en cours.
-    }
-  }, [ruler])
+  // Tempo et swing en vigueur : ceux du dernier élément lancé. Gardés en état
+  // plutôt que lus sur le séquenceur, pour que la barre de transport se
+  // rafraîchisse vraiment.
+  const [transport, setTransport] = useState({ bpm: 120, swing: 0.5 })
 
   const sequencer = useRef(null)
   if (sequencer.current === null) sequencer.current = new Sequencer()
 
   useEffect(() => () => sequencer.current?.stop(), [])
+  useEffect(() => setMasterVolume(volume), [volume])
+  useEffect(() => {
+    try {
+      localStorage.setItem(RULER_KEY, ruler)
+      localStorage.setItem(SECTION_KEY, section)
+      localStorage.setItem(TRANSPOSE_KEY, String(transpose))
+    } catch {
+      // Stockage indisponible : les choix valent pour la session en cours.
+    }
+  }, [ruler, section, transpose])
 
   useEffect(() => {
-    setMasterVolume(volume)
-  }, [volume])
+    sequencer.current.setTranspose(transpose)
+  }, [transpose])
 
-  const stop = useCallback(() => {
+  const stopAll = useCallback(() => {
     sequencer.current.stop()
-    setPlayingId(null)
+    setPlaying({ drum: null, chords: null })
     setPlayhead(-1)
   }, [])
 
-  const togglePlay = useCallback(
-    (pattern) => {
-      if (sequencer.current.isPlaying && playingId === pattern.id) {
-        stop()
-        return
+  const togglePlay = useCallback((kind, item) => {
+    const player = sequencer.current
+    setPlaying((current) => {
+      if (current[kind] === item.id) {
+        player.stopSlot(kind)
+        const next = { ...current, [kind]: null }
+        if (!next.drum && !next.chords) setPlayhead(-1)
+        return next
       }
-      sequencer.current.start(pattern, setPlayhead)
-      setPlayingId(pattern.id)
-    },
-    [playingId, stop],
-  )
+      player.start(kind, item, setPlayhead)
+      setTransport({ bpm: item.bpm, swing: item.swing })
+      return { ...current, [kind]: item.id }
+    })
+  }, [])
 
   const updatePattern = useCallback((next) => {
     setPatterns((current) => current.map((pattern) => (pattern.id === next.id ? next : pattern)))
     setEdited((current) => new Set(current).add(next.id))
 
-    const edits = readEdits()
+    const edits = readStore(EDITS_KEY)
     edits[next.id] = dehydratePattern(next)
-    writeEdits(edits)
-
-    sequencer.current.update(next)
+    writeStore(EDITS_KEY, edits)
+    sequencer.current.update('drum', next)
+    setPlaying((current) => {
+      if (current.drum === next.id) setTransport({ bpm: next.bpm, swing: next.swing })
+      return current
+    })
   }, [])
 
   const resetPattern = useCallback((id) => {
@@ -111,51 +145,70 @@ export default function App() {
       return next
     })
 
-    const edits = readEdits()
+    const edits = readStore(EDITS_KEY)
     delete edits[id]
-    writeEdits(edits)
+    writeStore(EDITS_KEY, edits)
+    sequencer.current.update('drum', restored)
+  }, [])
 
-    sequencer.current.update(restored)
+  const updateProgression = useCallback((next) => {
+    setProgressions((current) =>
+      current.map((progression) => (progression.id === next.id ? next : progression)),
+    )
+    const edits = readStore(CHORD_EDITS_KEY)
+    edits[next.id] = dehydrateProgression(next)
+    writeStore(CHORD_EDITS_KEY, edits)
+    sequencer.current.update('chords', next)
+    setPlaying((current) => {
+      if (current.chords === next.id) setTransport({ bpm: next.bpm, swing: next.swing })
+      return current
+    })
   }, [])
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') stop()
+      if (event.key === 'Escape') stopAll()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [stop])
+  }, [stopAll])
+
+  const library = section === 'drums' ? patterns : progressions
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return patterns.filter((pattern) => {
-      if (genre !== ALL && pattern.genre !== genre) return false
+    return library.filter((item) => {
+      if (genre !== ALL && item.genre !== genre) return false
       if (!needle) return true
-      const haystack = [
-        pattern.name,
-        pattern.genre,
-        pattern.notes ?? '',
-        String(pattern.bpm),
-        ...pattern.tracks.map((track) => INSTRUMENT_BY_ID[track.instrument]?.label ?? ''),
-      ]
+      const extras = item.chords
+        ? item.chords.map(([symbol]) => symbol)
+        : item.tracks.map((track) => INSTRUMENT_BY_ID[track.instrument]?.label ?? '')
+      return [item.name, item.genre, item.notes ?? '', String(item.bpm), ...extras]
         .join(' ')
         .toLowerCase()
-      return haystack.includes(needle)
+        .includes(needle)
     })
-  }, [patterns, genre, query])
+  }, [library, genre, query])
 
   const usedInstruments = useMemo(
-    () => new Set(visible.flatMap((pattern) => pattern.tracks.map((track) => track.instrument))),
+    () =>
+      new Set(
+        visible.flatMap((item) => (item.tracks ?? []).map((track) => track.instrument)),
+      ),
     [visible],
   )
 
   const counts = useMemo(() => {
-    const byGenre = { [ALL]: patterns.length }
-    for (const pattern of patterns) {
-      byGenre[pattern.genre] = (byGenre[pattern.genre] ?? 0) + 1
-    }
+    const byGenre = { [ALL]: library.length }
+    for (const item of library) byGenre[item.genre] = (byGenre[item.genre] ?? 0) + 1
     return byGenre
-  }, [patterns])
+  }, [library])
+
+  const nowPlaying = useMemo(() => {
+    const drum = patterns.find((pattern) => pattern.id === playing.drum)
+    const chords = progressions.find((progression) => progression.id === playing.chords)
+    return { drum, chords }
+  }, [patterns, progressions, playing])
 
   return (
     <div className="app">
@@ -163,8 +216,8 @@ export default function App() {
         <div className="masthead-title">
           <h1>Groovebox</h1>
           <p>
-            Mes rythmiques de référence sur une grille. Clic pour écouter, clic sur une case pour la
-            modifier, glisser le bouton MIDI dans le DAW.
+            Mes rythmiques et mes progressions de référence sur une grille. Une rythmique et une
+            suite d'accords peuvent jouer ensemble.
           </p>
         </div>
         <div className="masthead-tools">
@@ -196,15 +249,27 @@ export default function App() {
           >
             Mapping MIDI
           </button>
-          {playingId && (
-            <button type="button" className="stop-all" onClick={stop}>
-              ■ Stop <kbd>Échap</kbd>
-            </button>
-          )}
         </div>
       </header>
 
       <nav className="filters">
+        <div className="sections">
+          <button
+            type="button"
+            className={`section-tab${section === 'drums' ? ' on' : ''}`}
+            onClick={() => setSection('drums')}
+          >
+            Rythmiques <span className="chip-count">{patterns.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`section-tab${section === 'chords' ? ' on' : ''}`}
+            onClick={() => setSection('chords')}
+          >
+            Accords <span className="chip-count">{progressions.length}</span>
+          </button>
+        </div>
+
         <div className="chips">
           {[ALL, ...GENRES].map((value) => (
             <button
@@ -218,46 +283,98 @@ export default function App() {
             </button>
           ))}
         </div>
-        <input
-          type="search"
-          className="search"
-          placeholder="Chercher un groove, un instrument, un tempo…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+
+        <div className="filters-right">
+          {section === 'chords' && (
+            <label className="key-select" title="Déplace la fondamentale de référence (La) vers une autre note">
+              <span>La →</span>
+              <select value={transpose} onChange={(event) => setTranspose(Number(event.target.value))}>
+                {TRANSPOSITIONS.map((step) => (
+                  <option key={step.name} value={step.transpose}>
+                    {step.name}
+                    {step.transpose === 0 ? ' (origine)' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <input
+            type="search"
+            className="search"
+            placeholder={section === 'drums' ? 'Chercher un groove…' : 'Chercher un accord…'}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
       </nav>
+
+      {(nowPlaying.drum || nowPlaying.chords) && (
+        <div className="transport">
+          <span className="transport-light" aria-hidden="true" />
+          <span className="transport-what">
+            {nowPlaying.drum?.name ?? '—'}
+            <span className="transport-plus">+</span>
+            {nowPlaying.chords?.name ?? '—'}
+          </span>
+          <span className="transport-meta">
+            {transport.bpm} BPM
+            {transport.swing > 0.505 && ` · swing ${Math.round(transport.swing * 100)} %`}
+          </span>
+          <button type="button" className="stop-all" onClick={stopAll}>
+            ■ Stop <kbd>Échap</kbd>
+          </button>
+        </div>
+      )}
 
       {showLegend && <MidiLegend used={usedInstruments} />}
 
       <main className="library">
-        {visible.map((pattern) => (
-          <PatternCard
-            key={pattern.id}
-            pattern={pattern}
-            isPlaying={playingId === pattern.id}
-            playhead={playhead}
-            isEdited={edited.has(pattern.id)}
-            ruler={ruler}
-            onTogglePlay={togglePlay}
-            onChange={updatePattern}
-            onReset={resetPattern}
-          />
-        ))}
-        {visible.length === 0 && <p className="empty">Aucun groove ne correspond à cette recherche.</p>}
+        {section === 'drums'
+          ? visible.map((pattern) => (
+              <PatternCard
+                key={pattern.id}
+                pattern={pattern}
+                isPlaying={playing.drum === pattern.id}
+                playhead={playhead}
+                isEdited={edited.has(pattern.id)}
+                ruler={ruler}
+                onTogglePlay={(item) => togglePlay('drum', item)}
+                onChange={updatePattern}
+                onReset={resetPattern}
+              />
+            ))
+          : visible.map((progression) => (
+              <ChordCard
+                key={progression.id}
+                progression={progression}
+                transpose={transpose}
+                isPlaying={playing.chords === progression.id}
+                playhead={playhead}
+                ruler={ruler}
+                onTogglePlay={(item) => togglePlay('chords', item)}
+                onChange={updateProgression}
+              />
+            ))}
+        {visible.length === 0 && <p className="empty">Rien ne correspond à cette recherche.</p>}
       </main>
 
       <footer className="colophon">
         <p>
-          Export General MIDI canal 10 — chaque ligne de la grille porte son nom de note, et le
-          bouton <strong>Mapping MIDI</strong> affiche la table complète. Le tempo et le swing sont
-          écrits dans le fichier.
+          Batterie en General MIDI canal 10, accords sur le canal 1 avec leur vraie durée — chaque
+          ligne porte son nom de note, et le bouton <strong>Mapping MIDI</strong> affiche la table
+          complète. Tempo et swing sont écrits dans le fichier.
+        </p>
+        <p>
+          Les progressions sont écrites avec <strong>La</strong> pour fondamentale de référence ; le
+          sélecteur <strong>La →</strong> transpose l'affichage et l'export. C'est une
+          transposition, pas un choix de tonalité : une progression en La mineur amenée sur Do
+          devient du Do mineur.
         </p>
         {ruler === 'mpc' && (
           <p>
             Positions au format <code>mesure.temps.tick</code> de la MPC, à 960 ticks par temps —
-            240 par double-croche. Attention : sur un groove shufflé, les notes exportées ne tombent
-            pas sur ces positions rondes. C'est le swing, pas une erreur : à 64 %, une double
-            impaire écrite <code>001.01.720</code> est jouée à <code>001.01.788</code>.
+            240 par double-croche. Sur un groove shufflé, les notes exportées ne tombent pas sur ces
+            positions rondes : c'est le swing, pas une erreur.
           </p>
         )}
         <p>

@@ -1,4 +1,5 @@
 import { AUDIO_GAIN, VELOCITY, swingOffset } from './pattern.js'
+import { progressionHits } from './chords.js'
 
 // Moteur audio : synthèse façon boîte à rythmes (pas de samples, donc pas de
 // fichiers à charger) + ordonnanceur à anticipation. Le principe de
@@ -200,12 +201,136 @@ export function triggerVoice(instrumentId, velocity, when) {
   voice(ctx, when ?? ctx.currentTime, AUDIO_GAIN[velocity] ?? 0.7)
 }
 
-// Lecture en boucle d'un pattern. `onStep` est appelé avec l'index du pas
-// courant pour piloter la tête de lecture affichée.
+
+// --- voix harmoniques ----------------------------------------------------
+//
+// Trois timbres, synthétisés comme les percussions : aucun sample. Chacun
+// reçoit une durée, car c'est elle qui distingue un stab d'un accord tenu.
+
+function chordEnv(ctx, time, duration, peak, { attack, decay, sustain, release }) {
+  const gain = ctx.createGain()
+  const end = time + duration
+  gain.gain.setValueAtTime(0, time)
+  gain.gain.linearRampToValueAtTime(peak, time + attack)
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * sustain), time + attack + decay)
+  gain.gain.setValueAtTime(Math.max(0.0001, peak * sustain), Math.max(time + attack + decay, end))
+  gain.gain.exponentialRampToValueAtTime(0.0001, Math.max(time + attack + decay, end) + release)
+  return { gain, stop: Math.max(time + attack + decay, end) + release + 0.05 }
+}
+
+const CHORD_VOICES = {
+  // Orgue : addition d'harmoniques entières, façon tirettes. Le petit clic
+  // d'attaque est ce qui le rend reconnaissable.
+  organ(ctx, freq, time, duration, level) {
+    const { gain, stop } = chordEnv(ctx, time, duration, level * 0.5, {
+      attack: 0.006, decay: 0.03, sustain: 0.9, release: 0.06,
+    })
+    gain.connect(master)
+
+    for (const [ratio, amount] of [[1, 1], [2, 0.5], [3, 0.3], [4, 0.16]]) {
+      const osc = ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.value = freq * ratio
+      const partial = ctx.createGain()
+      partial.gain.value = amount
+      osc.connect(partial)
+      partial.connect(gain)
+      osc.start(time)
+      osc.stop(stop)
+    }
+
+    noiseVoice(ctx, time, { decay: 0.012, filter: 4000, peak: level * 0.06 })
+  },
+
+  // Rhodes : modulation de fréquence à deux opérateurs. L'indice de modulation
+  // s'effondre en 150 ms — c'est l'attaque de la lamelle, puis il ne reste
+  // qu'une sinusoïde qui s'éteint.
+  rhodes(ctx, freq, time, duration, level) {
+    const { gain, stop } = chordEnv(ctx, time, duration, level * 0.55, {
+      attack: 0.004, decay: 0.5, sustain: 0.35, release: 0.35,
+    })
+    gain.connect(master)
+
+    const carrier = ctx.createOscillator()
+    carrier.type = 'sine'
+    carrier.frequency.value = freq
+
+    const modulator = ctx.createOscillator()
+    modulator.type = 'sine'
+    modulator.frequency.value = freq * 2
+
+    const index = ctx.createGain()
+    index.gain.setValueAtTime(freq * 3.2, time)
+    index.gain.exponentialRampToValueAtTime(freq * 0.05, time + 0.15)
+
+    modulator.connect(index)
+    index.connect(carrier.frequency)
+    carrier.connect(gain)
+
+    modulator.start(time)
+    carrier.start(time)
+    modulator.stop(stop)
+    carrier.stop(stop)
+  },
+
+  // Nappe : deux dents de scie légèrement désaccordées, filtrées, avec une
+  // attaque lente. Le battement entre les deux fait toute l'épaisseur.
+  pad(ctx, freq, time, duration, level) {
+    const { gain, stop } = chordEnv(ctx, time, duration, level * 0.32, {
+      attack: 0.25, decay: 0.3, sustain: 0.85, release: 0.7,
+    })
+
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.Q.value = 0.8
+    filter.frequency.setValueAtTime(freq * 2, time)
+    filter.frequency.linearRampToValueAtTime(freq * 6, time + Math.min(0.9, duration))
+
+    filter.connect(gain)
+    gain.connect(master)
+
+    for (const detune of [-7, 7]) {
+      const osc = ctx.createOscillator()
+      osc.type = 'sawtooth'
+      osc.frequency.value = freq
+      osc.detune.value = detune
+      osc.connect(filter)
+      osc.start(time)
+      osc.stop(stop)
+    }
+  },
+}
+
+function midiToFrequency(note) {
+  return 440 * 2 ** ((note - 69) / 12)
+}
+
+export function triggerChord(timbre, pitches, velocity, when, duration = 0.5) {
+  if (velocity === VELOCITY.OFF) return
+  const ctx = getContext()
+  const voice = CHORD_VOICES[timbre] ?? CHORD_VOICES.organ
+  const time = when ?? ctx.currentTime
+
+  // Un accord de six notes ne doit pas être six fois plus fort qu'une seule :
+  // on répartit l'énergie au lieu de l'additionner.
+  const level = (AUDIO_GAIN[velocity] ?? 0.7) / Math.sqrt(pitches.length)
+  for (const pitch of pitches) {
+    voice(ctx, midiToFrequency(pitch), time, duration, level)
+  }
+}
+
+// Lecture en boucle. Deux emplacements indépendants — une rythmique et une
+// progression — partagent la même horloge, ce qui permet de les superposer.
+// Le tempo et le swing sont ceux du dernier élément lancé.
 export class Sequencer {
   constructor() {
     this.timer = null
-    this.pattern = null
+    this.slots = { drum: null, chords: null }
+    this.hits = { chords: new Map() }
+    this.transpose = 0
+    this.bpm = 120
+    this.swing = 0.5
+    this.steps = 32
     this.onStep = null
     this.stepIndex = 0
     this.nextStepTime = 0
@@ -215,21 +340,60 @@ export class Sequencer {
     return this.timer !== null
   }
 
-  start(pattern, onStep) {
+  playing(kind) {
+    return this.slots[kind] !== null
+  }
+
+  adopt(item) {
+    this.bpm = item.bpm
+    this.swing = item.swing
+    this.steps = item.steps
+  }
+
+  cacheChords() {
+    const progression = this.slots.chords
+    const map = new Map()
+    if (progression) {
+      for (const hit of progressionHits(progression, this.transpose)) map.set(hit.step, hit)
+    }
+    this.hits.chords = map
+  }
+
+  start(kind, item, onStep) {
     const ctx = getContext()
     if (ctx.state === 'suspended') ctx.resume()
 
-    this.stop()
-    this.pattern = pattern
-    this.onStep = onStep
-    this.stepIndex = 0
-    this.nextStepTime = ctx.currentTime + 0.06
-    this.timer = window.setInterval(() => this.tick(), LOOKAHEAD_MS)
-    this.tick()
+    this.slots[kind] = item
+    this.adopt(item)
+    if (kind === 'chords') this.cacheChords()
+    if (onStep) this.onStep = onStep
+
+    // Si quelque chose joue déjà, le nouvel élément se greffe sur l'horloge en
+    // cours plutôt que de la relancer : c'est ce qui les garde calés.
+    if (this.timer === null) {
+      this.stepIndex = 0
+      this.nextStepTime = ctx.currentTime + 0.06
+      this.timer = window.setInterval(() => this.tick(), LOOKAHEAD_MS)
+      this.tick()
+    }
   }
 
-  update(pattern) {
-    if (this.pattern) this.pattern = pattern
+  update(kind, item) {
+    if (!this.slots[kind]) return
+    this.slots[kind] = item
+    this.adopt(item)
+    if (kind === 'chords') this.cacheChords()
+  }
+
+  setTranspose(transpose) {
+    this.transpose = transpose
+    this.cacheChords()
+  }
+
+  stopSlot(kind) {
+    this.slots[kind] = null
+    if (kind === 'chords') this.cacheChords()
+    if (!this.slots.drum && !this.slots.chords) this.stop()
   }
 
   stop() {
@@ -237,24 +401,33 @@ export class Sequencer {
       window.clearInterval(this.timer)
       this.timer = null
     }
-    this.pattern = null
+    this.slots = { drum: null, chords: null }
+    this.hits.chords = new Map()
     if (this.onStep) this.onStep(-1)
     this.onStep = null
   }
 
   tick() {
     const ctx = getContext()
-    const pattern = this.pattern
-    if (!pattern) return
+    if (this.timer === null) return
 
-    const stepDuration = 60 / pattern.bpm / 4
+    const stepDuration = 60 / this.bpm / 4
 
     while (this.nextStepTime < ctx.currentTime + SCHEDULE_AHEAD_S) {
-      const step = this.stepIndex % pattern.steps
-      const time = this.nextStepTime + swingOffset(step, pattern.swing) * stepDuration
+      const step = this.stepIndex % this.steps
+      const time = this.nextStepTime + swingOffset(step, this.swing) * stepDuration
 
-      for (const track of pattern.tracks) {
-        triggerVoice(track.instrument, track.cells[step], time)
+      const pattern = this.slots.drum
+      if (pattern) {
+        for (const track of pattern.tracks) {
+          triggerVoice(track.instrument, track.cells[step], time)
+        }
+      }
+
+      const progression = this.slots.chords
+      const hit = this.hits.chords.get(step)
+      if (progression && hit) {
+        triggerChord(progression.timbre, hit.pitches, hit.velocity, time, hit.lengthSteps * stepDuration)
       }
 
       const scheduledStep = step

@@ -1,8 +1,9 @@
 # Groovebox
 
-Une bibliothèque personnelle de rythmiques — garage, jungle, 2-step, IDM, house —
-posées sur une grille de séquenceur. On les écoute d'un clic, on les retouche
-case par case, et on les glisse directement dans le DAW en MIDI.
+Une bibliothèque personnelle de rythmiques **et de progressions d'accords** —
+garage, jungle, 2-step, drum & bass, IDM, house — posées sur une grille de
+séquenceur. On les écoute d'un clic, on les retouche case par case, et on les
+glisse directement dans le DAW en MIDI.
 
 ![Aperçu](docs/preview.png)
 
@@ -17,6 +18,10 @@ case par case, et on les glisse directement dans le DAW en MIDI.
 - **Swing réglable** par pattern, du binaire strict au triolet.
 - **Export MIDI** en glisser-déposer vers la timeline du DAW, ou en
   téléchargement. Tempo et swing sont écrits dans le fichier.
+- **18 progressions d'accords** dans les mêmes genres, avec le rythme des
+  stabs — en garage et en house, c'est lui qui fait la moitié de l'identité.
+- **Une rythmique et une progression jouent ensemble**, calées sur la même
+  horloge : de quoi entendre un début de morceau sans passer par le DAW.
 - **Édition en place** : les retouches sont conservées d'une session à l'autre,
   avec un bouton pour rétablir l'original.
 
@@ -61,6 +66,46 @@ Le fichier est un Standard MIDI File de format 0, résolution 480 ticks à la
 noire. Le swing n'est pas un réglage à part : il est **gravé dans les positions
 des notes**, donc le groove reste identique une fois le fichier déposé dans le
 DAW.
+
+## Les accords
+
+Les progressions vivent dans
+[`src/data/progressions.js`](src/data/progressions.js) :
+
+```js
+{
+  id: 'garage-organ-9ths',
+  name: 'Organ 9ths',
+  genre: 'UK Garage',
+  bpm: 133,
+  swing: 0.6,
+  gate: 0.25,          // longueur d'une frappe : 0.15 = stab sec, 1 = tenu
+  timbre: 'organ',     // organ | rhodes | pad
+  notes: "...",
+  chords: [['Am9', 8], ['Dm9', 8], ['Em9', 8], ['Am9', 8]],  // [chiffrage, pas]
+  rhythm: '..x.|x.x.|..x.|x.x.|..x.|x.x.|..x.|x.x.',
+}
+```
+
+`chords` découpe les 32 pas entre les accords ; `rhythm` dit où ils sont
+frappés, dans la même notation que la batterie. Une frappe tient jusqu'à la
+suivante, raccourcie par `gate`.
+
+Tout est écrit avec **La pour fondamentale de référence**. Le sélecteur
+`La →` transpose l'affichage et l'export — c'est une transposition, pas un
+choix de tonalité : une progression en La mineur amenée sur Do devient du Do
+mineur.
+
+Vocabulaire d'accords reconnu : `m`, `m6`, `m7`, `m9`, `m11`, `m7b5`, `maj7`,
+`maj9`, `maj7#11`, `7`, `9`, `13`, `7b9`, `7#9`, `7sus4`, `sus2`, `sus4`, `6`,
+`6/9`, `add9`, `dim`, `dim7`, `aug`, et la triade majeure sans suffixe.
+
+À l'export, les accords partent sur le **canal 1** avec leur durée réelle et un
+changement de programme General MIDI correspondant au timbre — pas sur le canal
+10 des percussions.
+
+`npm run validate` refuse notamment **un accord qu'aucune frappe ne
+déclenche** : il figurerait dans les données sans jamais s'entendre.
 
 ## Ajouter un groove
 
