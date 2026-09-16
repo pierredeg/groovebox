@@ -22,6 +22,8 @@ glisse directement dans le DAW en MIDI.
   stabs — en garage et en house, c'est lui qui fait la moitié de l'identité.
 - **Une rythmique et une progression jouent ensemble**, calées sur la même
   horloge : de quoi entendre un début de morceau sans passer par le DAW.
+- **Une section Clavier** qui schématise chaque accord sur 37 touches, pour
+  pouvoir les jouer sans savoir lire une partition.
 - **Édition en place** : les retouches sont conservées d'une session à l'autre,
   avec un bouton pour rétablir l'original.
 
@@ -106,6 +108,23 @@ changement de programme General MIDI correspondant au timbre — pas sur le cana
 
 `npm run validate` refuse notamment **un accord qu'aucune frappe ne
 déclenche** : il figurerait dans les données sans jamais s'entendre.
+
+## La section Clavier
+
+Chaque accord est dessiné sur un clavier de **37 touches, trois octaves de Do à
+Do** — la disposition d'un Arturia KeyStep 37. Les touches à enfoncer sont
+colorées et numérotées de la plus grave à la plus aiguë ; la **1** est toujours
+la fondamentale. Les Do sont repérés sous le clavier pour se situer.
+
+Un clic sur un schéma joue l'accord ; le bouton ▶ de la carte fait défiler la
+progression au ralenti, en laissant le temps de poser les doigts.
+
+Les voicings tiennent dans ces 37 touches par construction : les fondamentales
+sont ramenées dans l'octave MIDI 48–59, et l'accord le plus large de la
+bibliothèque (une 13ème) culmine à 80 — sous le plafond de 84.
+
+L'octave absolue dépend du réglage de ton clavier ; ce sont les **positions
+relatives** qui comptent, et elles ne bougent pas quand on décale l'octave.
 
 ## Ajouter un groove
 

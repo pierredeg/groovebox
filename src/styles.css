@@ -889,3 +889,186 @@ kbd {
     margin-left: 0;
   }
 }
+
+/* --------------------------------------------------------------- clavier */
+
+.keyboard-intro {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #a78bfa;
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.keyboard-intro p {
+  margin: 0;
+  max-width: 82ch;
+  color: var(--muted);
+}
+
+.keyboard-intro strong {
+  color: var(--text);
+}
+
+.keyboard-intro-note {
+  margin-top: 8px !important;
+  font-size: 12px;
+}
+
+.keyboard-card .card-head {
+  margin-bottom: 16px;
+}
+
+.keyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(328px, 1fr));
+  gap: 12px;
+}
+
+.keyboard-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.keyboard-slot:hover {
+  border-color: var(--line-strong);
+}
+
+.keyboard-slot.current {
+  border-color: rgba(167, 139, 250, 0.65);
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.keyboard-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.keyboard-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.keyboard-slot.current .keyboard-step {
+  background: #a78bfa;
+  color: #14181f;
+}
+
+.keyboard-symbol {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Un vrai clavier : touches claires et noires, pour être reconnaissable au
+   premier coup d'œil malgré le fond sombre de l'application. */
+.keyboard {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.keyboard .key.white {
+  fill: #dfe6ee;
+  stroke: #0c0e12;
+  stroke-width: 0.6;
+}
+
+.keyboard .key.black {
+  fill: #11151b;
+  stroke: #0c0e12;
+  stroke-width: 0.6;
+}
+
+.keyboard .key.held {
+  fill: #a78bfa;
+}
+
+.keyboard .key.held.root {
+  fill: #ff5a3c;
+}
+
+.keyboard .key-order {
+  fill: #14181f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.keyboard .key-order.on-black {
+  fill: #14181f;
+}
+
+.keyboard .key-c {
+  fill: #8b98a8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 7.5px;
+  text-anchor: middle;
+}
+
+.keyboard-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.keyboard-notes b {
+  margin-right: 3px;
+  color: #a78bfa;
+  font-weight: 700;
+}
+
+.keyboard-notes span:first-child b {
+  color: var(--hot);
+}
+
+@media (max-width: 720px) {
+  .keyboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.genre-chords {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Deux claviers par ligne plutôt que trois : les touches doivent être assez
+   grandes pour qu'on les compte à l'œil sans hésiter. */
+@media (min-width: 900px) {
+  .keyboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .keyboard {
+    width: 100%;
+  }
+}

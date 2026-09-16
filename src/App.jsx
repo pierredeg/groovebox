@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PatternCard from './components/PatternCard.jsx'
 import ChordCard from './components/ChordCard.jsx'
+import KeyboardCard from './components/KeyboardCard.jsx'
 import MidiLegend from './components/MidiLegend.jsx'
 import { GENRES, PATTERNS } from './data/patterns.js'
 import { PROGRESSIONS } from './data/progressions.js'
@@ -59,9 +60,11 @@ export default function App() {
   const [progressions, setProgressions] = useState(buildProgressions)
   const [edited, setEdited] = useState(() => new Set(Object.keys(readStore(EDITS_KEY))))
 
-  const [section, setSection] = useState(() =>
-    readSetting(SECTION_KEY, 'drums') === 'chords' ? 'chords' : 'drums',
-  )
+  const SECTIONS = ['drums', 'chords', 'keyboard']
+  const [section, setSection] = useState(() => {
+    const stored = readSetting(SECTION_KEY, 'drums')
+    return SECTIONS.includes(stored) ? stored : 'drums'
+  })
   const [genre, setGenre] = useState(ALL)
   const [query, setQuery] = useState('')
   const [transpose, setTranspose] = useState(() => Number(readSetting(TRANSPOSE_KEY, '0')) || 0)
@@ -268,6 +271,13 @@ export default function App() {
           >
             Accords <span className="chip-count">{progressions.length}</span>
           </button>
+          <button
+            type="button"
+            className={`section-tab${section === 'keyboard' ? ' on' : ''}`}
+            onClick={() => setSection('keyboard')}
+          >
+            Clavier
+          </button>
         </div>
 
         <div className="chips">
@@ -285,7 +295,7 @@ export default function App() {
         </div>
 
         <div className="filters-right">
-          {section === 'chords' && (
+          {section !== 'drums' && (
             <label className="key-select" title="Déplace la fondamentale de référence (La) vers une autre note">
               <span>La →</span>
               <select value={transpose} onChange={(event) => setTranspose(Number(event.target.value))}>
@@ -328,8 +338,28 @@ export default function App() {
 
       {showLegend && <MidiLegend used={usedInstruments} />}
 
+      {section === 'keyboard' && (
+        <section className="keyboard-intro">
+          <p>
+            Trois octaves de Do à Do : les 37 touches du KeyStep. Les touches colorées sont celles à
+            enfoncer, numérotées de la plus grave à la plus aiguë — la <strong>1</strong> est la
+            fondamentale. Clique sur un schéma pour entendre l'accord, ou sur ▶ pour les faire
+            défiler lentement, le temps de poser les doigts.
+          </p>
+          <p className="keyboard-intro-note">
+            Les Do sont repérés sous le clavier. Si le rendu sonne trop grave ou trop aigu sur ta
+            machine, c'est l'octave du clavier qu'il faut décaler, pas les touches : les positions
+            restent les mêmes.
+          </p>
+        </section>
+      )}
+
       <main className="library">
-        {section === 'drums'
+        {section === 'keyboard'
+          ? visible.map((progression) => (
+              <KeyboardCard key={progression.id} progression={progression} transpose={transpose} />
+            ))
+          : section === 'drums'
           ? visible.map((pattern) => (
               <PatternCard
                 key={pattern.id}
