@@ -128,3 +128,29 @@ export function mpcPosition(step) {
 export function mpcBarBeat(step) {
   return mpcPosition(step).slice(0, 6)
 }
+
+// Instruments de texture : leurs ghost notes remplissent l'espace sans rendre
+// le groove plus parlant. Une ligne de hats toute en ghosts gonfle n'importe
+// quelle statistique de densité sans rien changer au ressenti.
+const TEXTURE = new Set(['chat', 'phat', 'ohat', 'ride', 'crash', 'shaker'])
+
+// Ce qui fait parler un groove : des ghost notes sur les fûts, et deux mesures
+// qui ne se recopient pas. L'indicateur compte ce qu'il mesure — le nombre de
+// ghosts — plutôt que de porter une étiquette discutable : « dense » serait
+// faux pour une grille clairsemée mais entièrement murmurée.
+export function patternProfile(pattern) {
+  let hits = 0
+  let bodyGhosts = 0
+  let varies = false
+
+  for (const track of pattern.tracks) {
+    const texture = TEXTURE.has(track.instrument)
+    track.cells.forEach((cell, step) => {
+      if (cell !== VELOCITY.OFF) hits += 1
+      if (cell === VELOCITY.GHOST && !texture) bodyGhosts += 1
+      if (step < pattern.steps / 2 && cell !== track.cells[step + pattern.steps / 2]) varies = true
+    })
+  }
+
+  return { hits, bodyGhosts, varies, ghosted: bodyGhosts >= 6 && varies }
+}

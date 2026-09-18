@@ -73,6 +73,22 @@ export const PATTERNS = [
     },
   },
 
+  {
+    id: 'house-ghost-conversation',
+    name: 'Ghost Conversation',
+    genre: 'House',
+    bpm: 124,
+    swing: 0.58,
+    notes: "Sous le kick 4/4, la caisse claire murmure en continu entre les claps. Retire les ghosts et il ne reste qu'une boucle de métronome.",
+    tracks: {
+      kick:  'X...|X...|X...|X..o|X...|X...|X...|X.ox',
+      clap:  '....|X...|....|X...|....|X...|....|X...',
+      snare: '..o.|.o.o|..o.|.oo.|..o.|.o.o|.oo.|.o.o',
+      chat:  'xoo.|xoo.|xoo.|xoo.|xoo.|xoo.|xoo.|xoo.',
+      ohat:  '...x|...x|...x|...x|...x|...x|...x|...x',
+    },
+  },
+
   // ------------------------------------------------------------ UK Garage
   {
     id: 'garage-speed-4x4',
@@ -166,6 +182,36 @@ export const PATTERNS = [
     },
   },
 
+  {
+    id: 'garage-ghost-bump',
+    name: 'Ghost Bump',
+    genre: 'UK Garage',
+    bpm: 132,
+    swing: 0.62,
+    notes: "Le bump du kick et les ghosts de la caisse se répondent en permanence. La deuxième mesure resserre les deux, ce qui relance la boucle sans fill.",
+    tracks: {
+      kick:  'X...|X..o|X...|X..x|X...|X..o|X...|Xo.x',
+      snare: '..o.|X.o.|.o.o|X..o|..o.|X.oo|.o.o|X.o.',
+      chat:  'xoxo|xo.o|xoxo|xo.o|xoxo|xo.o|xoxo|xoxo',
+      ohat:  '....|..x.|....|..x.|....|..x.|....|....',
+      rim:   '...o|....|...o|....|...o|....|...o|..o.',
+    },
+  },
+  {
+    id: 'garage-rolling-ghosts',
+    name: 'Rolling Ghosts',
+    genre: 'UK Garage',
+    bpm: 134,
+    swing: 0.6,
+    notes: "Trois ghosts d'affilée avant chaque caisse claire : c'est ce qui donne l'impression que le groove roule au lieu de marquer.",
+    tracks: {
+      kick:  'X...|....|X.x.|...o|X...|..o.|X.x.|..x.',
+      snare: '..o.|X.oo|.o..|X.o.|..oo|X.o.|.oo.|X.oX',
+      chat:  'x..o|x.oo|x..o|x.oo|x..o|x.oo|x..o|x.oo',
+      ohat:  '..x.|....|..x.|....|..x.|....|..x.|....',
+    },
+  },
+
   // --------------------------------------------------------------- 2-Step
   {
     id: '2step-classic',
@@ -227,6 +273,37 @@ export const PATTERNS = [
     },
   },
 
+  {
+    id: '2step-ghost-conversation',
+    name: 'Ghost Conversation',
+    genre: '2-Step',
+    bpm: 136,
+    swing: 0.62,
+    notes: "La caisse claire parle entre les temps forts au lieu de les attendre. Les deux mesures ne sont pas identiques : la seconde ajoute des ghosts là où la première laissait du vide.",
+    tracks: {
+      kick:  'X...|...x|....|..x.|X...|...x|.x..|....',
+      snare: '..o.|X.oo|.o..|X.o.|..o.|X.oo|.oo.|Xo.o',
+      chat:  'x..o|x.oo|x..o|x.oo|x..o|x.oo|x..o|x.ox',
+      ohat:  '..x.|....|..x.|....|..x.|....|..x.|....',
+      rim:   '....|...o|....|...o|....|...o|...o|....',
+    },
+  },
+  {
+    id: '2step-broken-ghosts',
+    name: 'Broken Ghosts',
+    genre: '2-Step',
+    bpm: 138,
+    swing: 0.6,
+    notes: "Grille la plus dense de la bibliothèque : shaker en doubles continues, ghosts serrés, et un kick qui ne tombe jamais deux fois au même endroit.",
+    tracks: {
+      kick:   'X...|...o|.x..|....|X..o|....|.x..|..o.',
+      snare:  '.o.o|X.o.|..oo|X.o.|.o.o|X.oo|..o.|XooX',
+      chat:   'xoo.|x.oo|xoo.|x.oo|xoo.|x.oo|xoo.|x.oo',
+      ohat:   '...x|....|...x|....|...x|....|...x|....',
+      shaker: 'oooo|oooo|oooo|oooo|oooo|oooo|oooo|oooo',
+    },
+  },
+
   // --------------------------------------------------------------- Jungle
   {
     id: 'jungle-amen-core',
@@ -282,6 +359,35 @@ export const PATTERNS = [
       snare: '....|....|X...|....|....|....|X...|..o.',
       chat:  'x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.|x.o.',
       ltom:  '....|....|....|....|....|....|....|o.o.',
+    },
+  },
+
+  {
+    id: 'jungle-amen-full',
+    name: 'Amen Complet',
+    genre: 'Jungle',
+    bpm: 174,
+    swing: 0.5,
+    notes: "L'Amen Core avec ce qui lui manquait : les caisses fantômes avant et après chaque frappe, et la caisse supplémentaire en fin de mesure.",
+    tracks: {
+      kick:  'X...|....|..xx|....|X...|....|..x.|o...',
+      snare: '...o|X.o.|...o|X.oX|..o.|X.o.|o..o|X.oX',
+      chat:  '..x.|..x.|..x.|..x.|..x.|..x.|..x.|..x.',
+      ride:  'x..o|x..o|x..o|x..o|x..o|x..o|x..o|x..o',
+    },
+  },
+  {
+    id: 'jungle-ghost-edit',
+    name: 'Ghost Edit',
+    genre: 'Jungle',
+    bpm: 176,
+    swing: 0.5,
+    notes: "Break haché : la deuxième mesure déplace le kick et resserre les ghosts, comme un edit fait à la main sur le sampler.",
+    tracks: {
+      kick:  'X...|....|..x.|.o..|X.o.|....|x..x|....',
+      snare: '..o.|X.oo|...o|X.o.|.oo.|X..o|.o.X|Xo.o',
+      chat:  '.o.o|.o.o|.o.o|.o.o|.o.o|.o.o|.oo.|.o.o',
+      ride:  'x...|x..o|x...|x..o|x...|x..o|x...|x...',
     },
   },
 
@@ -345,6 +451,36 @@ export const PATTERNS = [
     },
   },
 
+  {
+    id: 'dnb-ghost-roller',
+    name: 'Ghost Roller',
+    genre: 'Drum & Bass',
+    bpm: 174,
+    swing: 0.5,
+    notes: "Deux ghosts avant chaque caisse claire, un après : le tapis ne s'interrompt jamais. C'est ce remplissage continu qui tient un morceau liquid.",
+    tracks: {
+      kick:  'X...|....|..x.|....|X..o|....|..x.|.o..',
+      snare: '.oo.|X.oo|.oo.|X.o.|.oo.|X.oo|.ooo|X.oX',
+      chat:  'o.o.|o.oo|o.o.|o.oo|o.o.|o.oo|o.o.|o.oo',
+      ride:  'x..x|.x..|x..x|.x..|x..x|.x..|x..x|.x..',
+    },
+  },
+  {
+    id: 'dnb-neuro-ghosts',
+    name: 'Neuro Ghosts',
+    genre: 'Drum & Bass',
+    bpm: 175,
+    swing: 0.5,
+    notes: "Le techstep gardait tout net ; ici les ghosts reviennent sans rien enlever à la raideur. Le contraste entre frappes sèches et murmures fait tout le relief.",
+    tracks: {
+      kick:  'X..o|....|..x.|..o.|X...|...x|..x.|....',
+      snare: '...o|X.o.|.o..|X.oo|...o|X.o.|.oo.|X.o.',
+      chat:  'x.x.|x.xo|x.x.|x.xo|x.x.|x.xo|x.x.|x.xo',
+      ohat:  '...x|....|...x|....|...x|....|...x|....',
+      rim:   '....|.o..|....|.o..|....|.o..|....|.o..',
+    },
+  },
+
   // ------------------------------------------------------------------ IDM
   {
     id: 'idm-braindance',
@@ -401,6 +537,21 @@ export const PATTERNS = [
       rim:  '..o.|o..o|..o.|....|..o.|o..o|....|o.o.',
       chat: '...o|..x.|o...|...x|...o|..x.|o...|...x',
       ltom: '....|....|.o..|....|....|....|..o.|....',
+    },
+  },
+  {
+    id: 'idm-ghost-lattice',
+    name: 'Ghost Lattice',
+    genre: 'IDM',
+    bpm: 150,
+    swing: 0.5,
+    notes: "Rien ne se répète : kick, caisse et hats suivent trois cycles différents, et les ghosts remplissent les trous laissés par les trois.",
+    tracks: {
+      kick:  'X..o|..x.|.o..|X...|..o.|x..o|....|X.x.',
+      snare: '..o.|X.o.|o.oo|..X.|.o..|Xo.o|..oo|X...',
+      chat:  'oxo.|.oxo|xo.o|ox.o|oxo.|.oxo|xo.o|oxoo',
+      rim:   '...o|o...|...o|o..o|...o|o...|..o.|o...',
+      htom:  '....|....|....|...o|....|....|....|.o.o',
     },
   },
 ]

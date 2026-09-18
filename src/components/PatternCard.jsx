@@ -1,7 +1,7 @@
 import { memo, useState } from 'react'
 import StepGrid from './StepGrid.jsx'
 import { downloadMidi, midiFileName, setDragData } from '../lib/midi.js'
-import { serializeRow } from '../lib/pattern.js'
+import { patternProfile, serializeRow } from '../lib/pattern.js'
 
 function swingLabel(swing) {
   if (swing <= 0.505) return 'binaire'
@@ -22,6 +22,7 @@ function PatternCard({
   onReset,
 }) {
   const [copied, setCopied] = useState(false)
+  const profile = patternProfile(pattern)
 
   const setCell = (instrument, step, velocity) => {
     onChange({
@@ -86,6 +87,14 @@ function PatternCard({
           <div>
             <h2>
               {pattern.name}
+              {profile.ghosted && (
+                <span
+                  className="badge ghosted"
+                  title={`${profile.bodyGhosts} ghost notes sur les fûts, et une deuxième mesure différente de la première`}
+                >
+                  {profile.bodyGhosts} ghosts
+                </span>
+              )}
               {isEdited && <span className="badge" title="Modifié par rapport à l'original">modifié</span>}
             </h2>
             <p className="genre">{pattern.genre}</p>

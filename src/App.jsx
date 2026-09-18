@@ -7,7 +7,7 @@ import { GENRES, PATTERNS } from './data/patterns.js'
 import { PROGRESSIONS } from './data/progressions.js'
 import { INSTRUMENT_BY_ID } from './data/instruments.js'
 import { Sequencer, setMasterVolume } from './lib/audio.js'
-import { dehydratePattern, hydratePattern } from './lib/pattern.js'
+import { dehydratePattern, hydratePattern, patternProfile } from './lib/pattern.js'
 import { TRANSPOSITIONS, dehydrateProgression, hydrateProgression } from './lib/chords.js'
 
 const EDITS_KEY = 'groovebox:edits:v1'
@@ -67,6 +67,7 @@ export default function App() {
   })
   const [genre, setGenre] = useState(ALL)
   const [query, setQuery] = useState('')
+  const [ghostedOnly, setGhostedOnly] = useState(false)
   const [transpose, setTranspose] = useState(() => Number(readSetting(TRANSPOSE_KEY, '0')) || 0)
 
   // Un identifiant par emplacement : une rythmique et une progression peuvent
@@ -182,6 +183,7 @@ export default function App() {
     const needle = query.trim().toLowerCase()
     return library.filter((item) => {
       if (genre !== ALL && item.genre !== genre) return false
+      if (ghostedOnly && item.tracks && !patternProfile(item).ghosted) return false
       if (!needle) return true
       const extras = item.chords
         ? item.chords.map(([symbol]) => symbol)
@@ -191,7 +193,7 @@ export default function App() {
         .toLowerCase()
         .includes(needle)
     })
-  }, [library, genre, query])
+  }, [library, genre, query, ghostedOnly])
 
   const usedInstruments = useMemo(
     () =>
@@ -295,6 +297,17 @@ export default function App() {
         </div>
 
         <div className="filters-right">
+          {section === 'drums' && (
+            <button
+              type="button"
+              className={`legend-toggle${ghostedOnly ? ' on' : ''}`}
+              onClick={() => setGhostedOnly((current) => !current)}
+              aria-pressed={ghostedOnly}
+              title="N'afficher que les grooves portés par des ghost notes, avec deux mesures différentes"
+            >
+              Ghostés
+            </button>
+          )}
           {section !== 'drums' && (
             <label className="key-select" title="Déplace la fondamentale de référence (La) vers une autre note">
               <span>La →</span>

@@ -1072,3 +1072,10 @@ kbd {
     width: 100%;
   }
 }
+
+.badge.ghosted {
+  border-color: rgba(122, 214, 255, 0.4);
+  background: rgba(122, 214, 255, 0.12);
+  color: #9adcff;
+  font-variant-numeric: tabular-nums;
+}

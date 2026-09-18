@@ -9,12 +9,14 @@ glisse directement dans le DAW en MIDI.
 
 ## Ce que ça fait
 
-- **26 grooves de référence** répartis en 6 genres — house, UK garage, 2-step,
+- **36 grooves de référence** répartis en 6 genres — house, UK garage, 2-step,
   jungle, drum & bass, IDM — chacun sur 2 mesures en doubles-croches (32 pas).
 - **Lecture instantanée** : synthèse Web Audio façon boîte à rythmes, aucun
   sample à charger.
 - **Trois niveaux de frappe** : ghost note, coup normal, accent. C'est ce qui
   sépare un groove qui respire d'une boucle de métronome.
+- **Un filtre « Ghostés »** et un badge par carte, qui comptent les ghost notes
+  sur les fûts — voir plus bas pourquoi celles des hats ne comptent pas.
 - **Swing réglable** par pattern, du binaire strict au triolet.
 - **Export MIDI** en glisser-déposer vers la timeline du DAW, ou en
   téléchargement. Tempo et swing sont écrits dans le fichier.
@@ -68,6 +70,22 @@ Le fichier est un Standard MIDI File de format 0, résolution 480 ticks à la
 noire. Le swing n'est pas un réglage à part : il est **gravé dans les positions
 des notes**, donc le groove reste identique une fois le fichier déposé dans le
 DAW.
+
+## L'indicateur « ghosts »
+
+Le badge d'une carte compte les ghost notes **sur les fûts** — kick, caisse,
+clap, rimshot, toms, percussions — et ignore celles des hats, cymbales et
+shakers. La distinction n'est pas cosmétique : une ligne de hats entièrement
+ghostée fait exploser n'importe quelle statistique de densité sans rien changer
+au ressenti, alors que trois ghosts de caisse entre deux temps forts
+transforment le groove.
+
+Le badge n'apparaît que si le pattern porte au moins six ghosts de fûts **et**
+que sa deuxième mesure diffère de la première. Deux mesures identiques, c'est
+une boucle d'une mesure jouée deux fois.
+
+L'indicateur est recalculé à partir des données, pas écrit à la main : il reste
+juste quand tu modifies un groove dans l'interface.
 
 ## Les accords
 
